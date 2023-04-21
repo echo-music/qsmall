@@ -14,6 +14,7 @@ import (
 )
 
 func NewHTTPServer(c *conf.Server, greeter *service.UserService, logger log.Logger) *http.Server {
+
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
