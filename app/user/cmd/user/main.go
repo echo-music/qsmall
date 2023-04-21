@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
+	"github.com/go-kratos/kratos/v2/registry"
 	"os"
 	"qsmall/app/user/internal/conf"
 
@@ -13,7 +13,6 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
-	etcdclient "go.etcd.io/etcd/client/v3"
 
 	_ "go.uber.org/automaxprocs"
 )
@@ -34,15 +33,7 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
-
-	client, err := etcdclient.New(etcdclient.Config{
-		Endpoints: []string{"127.0.0.1:2379"},
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	r := etcd.New(client)
+func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server, r registry.Registrar) *kratos.App {
 
 	return kratos.New(
 		kratos.ID(id),
@@ -85,7 +76,12 @@ func main() {
 		panic(err)
 	}
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
+	var rc conf.Registry
+	if err := c.Scan(&rc); err != nil {
+		panic(err)
+	}
+
+	app, cleanup, err := wireApp(bc.Server, bc.Data, &rc, logger)
 	if err != nil {
 		panic(err)
 	}
