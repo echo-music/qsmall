@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package api.user;
+import "google/api/annotations.proto";
+
+option go_package = "qsmall/api/user;user";
+option java_multiple_files = true;
+option java_package = "api.user";
+
+service User {
+	rpc CreateUser (CreateUserRequest) returns (CreateUserReply){
+		option (google.api.http) = {
+			get: "/qsmall/user/{name}"
+		};
+	};
+	rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply);
+	rpc DeleteUser (DeleteUserRequest) returns (DeleteUserReply);
+	rpc GetUser (GetUserRequest) returns (GetUserReply);
+	rpc ListUser (ListUserRequest) returns (ListUserReply);
+}
+
+message CreateUserRequest {
+	string name = 1;
+}
+message CreateUserReply {}
+
+message UpdateUserRequest {}
+message UpdateUserReply {}
+
+message DeleteUserRequest {}
+message DeleteUserReply {}
+
+message GetUserRequest {}
+message GetUserReply {}
+
+message ListUserRequest {}
+message ListUserReply {}
