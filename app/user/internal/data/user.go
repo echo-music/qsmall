@@ -31,7 +31,6 @@ func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
 }
 
 func (s *userRepo) CreateUser(ctx context.Context, req *biz.User) (*biz.User, error) {
-	s.log.Info("哈哈哈哈哈哈")
 	return nil, nil
 }
 func (s *userRepo) UpdateUser(ctx context.Context, req *biz.User) (*biz.User, error) {

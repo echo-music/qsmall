@@ -14,7 +14,7 @@ var ProviderSet = wire.NewSet(NewGRPCServer, NewHTTPServer, NewRegistrar)
 func NewRegistrar(conf *conf.Registry) registry.Registrar {
 
 	c, err := etcdv3.New(etcdv3.Config{
-		Endpoints:   []string{"127.0.0.1:2379"},
+		Endpoints:   conf.Etcd.Endpoints,
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {

@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"qsmall/app/user/internal/biz"
 
 	pb "qsmall/api/user"
@@ -17,9 +20,14 @@ func NewUserService(bz *biz.UserBiz) *UserService {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserReply, error) {
+	ctx, span := otel.Tracer("user").Start(ctx, "CreateUser")
+	defer span.End()
+	span.SetAttributes(attribute.String("key1", "value"), attribute.Int("key2", 123))
+
 	_, err := s.bz.CreateUser(ctx, &biz.User{
 		ID: 10001,
 	})
+	fmt.Println("hhecevcervervre")
 	if err != nil {
 		return nil, err
 	}
