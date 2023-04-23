@@ -696,6 +696,54 @@ http://127.0.0.1:8000/qsmall/user/xwcxwedewd
 
 ### 7、服务注册与发现
 使用 etcd 做服务注册与发现
+
+(0) 使用docker 安装etcd
+docker-compose.yml
+```
+version: '3'
+
+networks:
+  etcd-network:
+
+services:
+  etcd:
+    container_name: "etcd_server"
+    image: bitnami/etcd:latest
+    privileged: true
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    environment:
+      - "ETCD_ADVERTISE_CLIENT_URLS=http://0.0.0.0:2379"
+      - "ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
+      - "ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
+      - "ETCD_INITIAL_ADVERTISE_PEER_URLS=http://0.0.0.0:2380"
+      - "ALLOW_NONE_AUTHENTICATION=yes"
+      - "ETCD_ROOT_PASSWORD=123456"
+
+
+    volumes:
+      - /Users/liufangting/home/etcd3/data:/bitnami/etcd/data
+    networks:
+      - etcd-network
+  etcd_keeper:
+    hostname: etcdkeeper
+    container_name: "etcdkeeper"
+    image: evildecay/etcdkeeper:latest
+    ports:
+      - "8081:8080"
+    networks:
+      - etcd-network
+
+
+
+```
+启动etcd 服务
+docker-compose up -d 
+
+
+
+
 (1) 定义服务注册的配置
 app/user/intetnal/conf/conf.proto
 ```
