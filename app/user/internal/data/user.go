@@ -20,7 +20,8 @@ func NewUserRepo(data *Data, logger log.Logger) biz.UserRepo {
 }
 
 type Data struct {
-	db *db
+	db    *db
+	cache *cache
 }
 
 // NewData .
@@ -37,6 +38,13 @@ type db struct {
 //mysql实例
 func NewDB() *db {
 	return &db{}
+}
+
+type cache struct {
+}
+
+func NewCache() *cache {
+	return &cache{}
 }
 
 func (s *userRepo) CreateUser(ctx context.Context, req *biz.User) (*biz.User, error) {
