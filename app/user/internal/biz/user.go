@@ -27,6 +27,8 @@ func NewUserBiz(repo UserRepo, logger log.Logger) *UserBiz {
 }
 
 func (b *UserBiz) CreateUser(ctx context.Context, req *User) (*User, error) {
+
+	b.log.WithContext(ctx).Info("你好我好，大家好")
 	return b.repo.CreateUser(ctx, &User{ID: 10001})
 }
 func (b *UserBiz) UpdateUser(ctx context.Context, req *User) (*User, error) {

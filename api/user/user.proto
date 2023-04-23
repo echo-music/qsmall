@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package api.user;
+import "errors/errors.proto";
 import "google/api/annotations.proto";
 
 option go_package = "qsmall/api/user;user";
@@ -35,3 +36,15 @@ message GetUserReply {}
 
 message ListUserRequest {}
 message ListUserReply {}
+
+
+
+enum ErrorReason {
+	// 设置缺省错误码
+	option (errors.default_code) = 500;
+
+	// 为某个枚举单独设置错误码
+	USER_NOT_FOUND = 0 [(errors.code) = 404];
+
+	CONTENT_MISSING = 1 [(errors.code) = 400];
+}
