@@ -3,6 +3,7 @@
 ## 一、创建用户项目
 
 ### 1、添加 proto 文件
+定义rpc接口
 ```
 qsmall项目根木目录下执行如下命令：
 
@@ -56,6 +57,7 @@ message ListUserReply {}
 
 
 ### 2、生成*.pb 和 *.grpc.pb 代码
+生成rpc服务代码
 ```
 qsmall项目根木目录下执行如下命令：
 
@@ -72,11 +74,188 @@ kratos proto client api/user/user.proto
 ```
 
 ### 3、生成实现 grpc service 的代码
-
+生成实现好的rpc服务代码
 ```
 kratos proto server api/user/user.proto -t app/user/internal/service
 
 ```
+
+### 4、grpc 和 http 服务实例的创建
+grpc 和 http 服务实例的创建
+
+app/user/internal/server/grpc.go
+```
+func NewGRPCServer(c *conf.Server, greeter *service.UserService, logger log.Logger) *grpc.Server {
+	var opts = []grpc.ServerOption{
+		grpc.Middleware(
+			recovery.Recovery(),
+			logging.Server(logger),
+			tracing.Server(),
+			validate.Validator(),
+		),
+	}
+	if c.Grpc.Network != "" {
+		opts = append(opts, grpc.Network(c.Grpc.Network))
+	}
+	if c.Grpc.Addr != "" {
+		opts = append(opts, grpc.Address(c.Grpc.Addr))
+	}
+	if c.Grpc.Timeout != nil {
+		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
+	}
+	srv := grpc.NewServer(opts...)
+	user.RegisterUserServer(srv, greeter)
+	return srv
+}
+```
+
+app/user/internal/server/http.go
+```
+func NewHTTPServer(c *conf.Server, greeter *service.UserService, logger log.Logger) *http.Server {
+
+	var opts = []http.ServerOption{
+		http.Middleware(
+			recovery.Recovery(),
+			tracing.Server(),
+			logging.Server(logger),
+			validate.Validator(),
+		),
+		http.Filter(handlers.CORS(
+			handlers.AllowedOrigins([]string{"*"}),
+			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
+		)),
+	}
+
+	if c.Http.Network != "" {
+		opts = append(opts, http.Network(c.Http.Network))
+	}
+	if c.Http.Addr != "" {
+		opts = append(opts, http.Address(c.Http.Addr))
+	}
+	if c.Http.Timeout != nil {
+		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
+	}
+	srv := http.NewServer(opts...)
+	user.RegisterUserHTTPServer(srv, greeter)
+	return srv
+}
+
+```
+使用 wire 来管理依赖的 服务
+app/user/internal/server/server.go
+```
+var ProviderSet = wire.NewSet(NewGRPCServer, NewHTTPServer)
+
+```
+
+### 5、服务入口 
+
+app/user/cmd/user/main.go
+```
+
+// go build -ldflags "-X main.Version=x.y.z"
+var (
+	// Name is the name of the compiled software.
+	Name string = "user"
+	// Version is the version of the compiled software.
+	Version string
+	// flagconf is the config flag.
+	flagconf string
+
+	id, _ = os.Hostname()
+)
+
+func init() {
+	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
+}
+
+
+func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+
+	return kratos.New(
+		kratos.ID(id),
+		kratos.Name(Name),
+		kratos.Version(Version),
+		kratos.Metadata(map[string]string{}),
+		kratos.Logger(logger),
+		kratos.Server(
+			gs,
+			hs,
+		),
+	)
+}
+
+
+
+func main() {
+	flag.Parse()
+
+	logger := log.With(log.NewStdLogger(os.Stdout),
+		"ts", log.DefaultTimestamp,
+		"caller", log.DefaultCaller,
+		"service.id", id,
+		"service.name", Name,
+		"service.version", Version,
+	
+	)
+	c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+	)
+	defer c.Close()
+
+	if err := c.Load(); err != nil {
+		panic(err)
+	}
+
+	var bc conf.Bootstrap
+	if err := c.Scan(&bc); err != nil {
+		panic(err)
+	}
+
+	app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
+	if err != nil {
+		panic(err)
+	}
+	defer cleanup()
+	// start and wait for stop signal
+	if err := app.Run(); err != nil {
+		panic(err)
+	}
+}
+```
+
+使用wire 来管理依赖
+app/user/cmd/user/wire.go
+```
+package main
+
+import (
+	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/wire"
+	"qsmall/app/user/internal/biz"
+	"qsmall/app/user/internal/conf"
+	"qsmall/app/user/internal/data"
+	"qsmall/app/user/internal/server"
+	"qsmall/app/user/internal/service"
+)
+
+// wireApp init kratos application.
+func wireApp(*conf.Server, *conf.Data, log.Logger) (*kratos.App, func(), error) {
+	panic(wire.Build(server.ProviderSet, data.ProviderSet, biz.ProviderSet, service.ProviderSet, newApp))
+}
+
+```
+
+
+
+
+
+
+
+
 
 ### 4、服务之间的依赖关系
 service->biz->repo->data->{mysql,redis,mq,etcd}
@@ -148,6 +327,9 @@ data    业务数据访问，包含 cache、db 等封装，实现了 biz 的 rep
         └── validate.proto
 
 ```
+
+
+
 
 
 ### 4、错误码文件生成
