@@ -20,7 +20,7 @@ func NewUserRepo(data *Data, logger log.Logger) biz.UserRepo {
 }
 
 type Data struct {
-	DB *db
+	db *db
 }
 
 // NewData .
@@ -28,7 +28,7 @@ func NewData(c *conf.Data, db *db, logger log.Logger) (*Data, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{DB: db}, cleanup, nil
+	return &Data{db: db}, cleanup, nil
 }
 
 type db struct {
