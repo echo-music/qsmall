@@ -741,6 +741,42 @@ var ProviderSet = wire.NewSet(NewGRPCServer, NewHTTPServer, NewRegistrar)
 
 ```
 
+(4) 读取配置文件
+app/user/configs
+```
+var rc conf.Registry
+	if err := c.Scan(&rc); err != nil {
+		panic(err)
+	}
+```
+
+(5) 增加服务注册配置参数
+```
+func wireApp(*conf.Server, *conf.Data, *conf.Registry, log.Logger) (*kratos.App, func(), error) {}
+```
+
+(6) 增加服务注册实例 参数
+```
+func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server, r registry.Registrar) *kratos.App {
+
+	return kratos.New(
+		kratos.ID(id),
+		kratos.Name(Name),
+		kratos.Version(Version),
+		kratos.Metadata(map[string]string{}),
+		kratos.Logger(logger),
+		kratos.Server(
+			gs,
+			hs,
+		),
+		kratos.Registrar(r),
+	)
+}
+
+加入 kratos.Registrar(r) 服务注册与发现
+```
+运行 wire . 生成依赖代码
+
 
 
 
