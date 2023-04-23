@@ -696,6 +696,52 @@ http://127.0.0.1:8000/qsmall/user/xwcxwedewd
 
 ### 7、服务注册与发现
 使用 etcd 做服务注册与发现
+(1) 定义服务注册的配置
+app/user/intetnal/conf/conf.proto
+```
+message Registry {
+  message Etcd {
+    repeated string endpoints = 1;
+  }
+  Etcd etcd = 1;
+
+}
+```
+(2) 生成对应的配置代码
+make config
+app/user/intetnal/conf/conf.pb.go
+```
+type Registry_Etcd struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Endpoints []string `protobuf:"bytes,1,rep,name=endpoints,proto3" json:"endpoints,omitempty"`
+}
+```
+(3) 创建服务注册实例
+app/user/internal/server/server.go
+```
+func NewRegistrar(conf *conf.Registry) registry.Registrar {
+
+	c, err := etcdv3.New(etcdv3.Config{
+		Endpoints:   conf.Etcd.Endpoints,
+		DialTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return etcd.New(c)
+}
+```
+注册服务
+```
+var ProviderSet = wire.NewSet(NewGRPCServer, NewHTTPServer, NewRegistrar)
+
+```
+
+
 
 
 
