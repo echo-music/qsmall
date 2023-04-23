@@ -250,13 +250,6 @@ func wireApp(*conf.Server, *conf.Data, log.Logger) (*kratos.App, func(), error) 
 ```
 
 
-
-
-
-
-
-
-
 ### 4、服务之间的依赖关系
 service->biz->repo->data->{mysql,redis,mq,etcd}
 ```
@@ -327,8 +320,13 @@ data    业务数据访问，包含 cache、db 等封装，实现了 biz 的 rep
         └── validate.proto
 
 ```
+好了现在我们分别定义这些服务
+(1)创建mysql客户端实例
 
 
+```
+
+```
 
 
 

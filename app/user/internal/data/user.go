@@ -20,14 +20,23 @@ func NewUserRepo(data *Data, logger log.Logger) biz.UserRepo {
 }
 
 type Data struct {
+	DB *db
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
+func NewData(c *conf.Data, db *db, logger log.Logger) (*Data, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{}, cleanup, nil
+	return &Data{DB: db}, cleanup, nil
+}
+
+type db struct {
+}
+
+//mysql实例
+func NewDB() *db {
+	return &db{}
 }
 
 func (s *userRepo) CreateUser(ctx context.Context, req *biz.User) (*biz.User, error) {
