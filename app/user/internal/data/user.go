@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"qsmall/app/user/internal/biz"
 	"qsmall/app/user/internal/conf"
@@ -31,7 +32,9 @@ func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
 }
 
 func (s *userRepo) CreateUser(ctx context.Context, req *biz.User) (*biz.User, error) {
-	return nil, nil
+	err := errors.New(404, "USER_NOT_FOUND", "user name is empty")
+
+	return nil, err
 }
 func (s *userRepo) UpdateUser(ctx context.Context, req *biz.User) (*biz.User, error) {
 	return nil, nil

@@ -2,7 +2,9 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
+	"qsmall/api/user"
 )
 
 type User struct {
@@ -29,8 +31,14 @@ func NewUserBiz(repo UserRepo, logger log.Logger) *UserBiz {
 func (b *UserBiz) CreateUser(ctx context.Context, req *User) (*User, error) {
 
 	b.log.WithContext(ctx).Info("你好我好，大家好")
-	return b.repo.CreateUser(ctx, &User{ID: 10001})
+
+	_, err := b.repo.CreateUser(ctx, &User{ID: 10001})
+	if ok := user.IsUserNotFound(err); ok {
+		fmt.Println("用户不存在")
+	}
+	return nil, err
 }
+
 func (b *UserBiz) UpdateUser(ctx context.Context, req *User) (*User, error) {
 	return nil, nil
 }
