@@ -3,6 +3,8 @@ syntax = "proto3";
 package api.user;
 import "errors/errors.proto";
 import "google/api/annotations.proto";
+import "validate/validate.proto";
+
 
 option go_package = "qsmall/api/user;user";
 option java_multiple_files = true;
@@ -21,7 +23,16 @@ service User {
 }
 
 message CreateUserRequest {
-	string name = 1;
+	string name = 1 [(validate.rules).string = {min_len: 1, max_len: 16}];
+	// 参数文本长度必须为 11
+	string phone = 2 [(validate.rules).string.len = 11];
+	// 参数文本长度不能小于 10 个字符
+	string explain = 3 [(validate.rules).string.min_len =  10];
+	// 参数文本使用正则匹配,匹配必须是非空的不区分大小写的十六进制字符串
+	string card = 4 [(validate.rules).string.pattern = "(?i)^[0-9a-f]+$"];
+	// 参数文本必须是 email 格式
+	string email = 5 [(validate.rules).string.email = true];
+
 }
 message CreateUserReply {}
 
