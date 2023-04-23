@@ -777,6 +777,11 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server, r registry.Regi
 ```
 运行 wire . 生成依赖代码
 
+(7) 写一个客户端进行测试
+```
+
+```
+
 
 
 
